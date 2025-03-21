@@ -58,7 +58,7 @@ jobs:
 
       - name: Running Terraform Apply with dev.tfvars and Image URIs
         run: |
-          cd terraform
+          cd infra
           terraform init
           terraform apply -auto-approve \
             -var-file=dev.tfvars \
