@@ -8,8 +8,8 @@ on:
 
 env:
   AWS_REGION: eu-west-2
-  ECR_REPO_APPOINTMENT-SERVICE: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/service1
-  ECR_REPO_PATIENT--SERVICE: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/service2
+  ECR_REPO_SERVICE1: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/service1
+  ECR_REPO_SERVICE2: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/service2
 
 permissions:
   id-token: write
