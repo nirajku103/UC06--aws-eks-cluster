@@ -1,0 +1,41 @@
+name: Docker Build and Push
+
+on:
+  workflow_dispatch:
+
+env:
+  ECR_REPOSITORY_PATIENT: patient-service
+  ECR_REPOSITORY_APPOINTMENT: appointment-service
+  AWS_REGION: eu-west-2
+
+jobs:
+  build-and-push:
+    name: Build and Push Docker Images
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Build, tag, and push patient-service image
+      run: |
+        docker build -t $ECR_REPOSITORY_PATIENT:latest -f apps/Dockerfile-appoint ./apps
+        docker tag $ECR_REPOSITORY_PATIENT:latest 985539789378.dkr.ecr.us-east-1.amazonaws.com/$ECR_REPOSITORY_PATIENT:latest
+        docker push 985539789378.dkr.ecr.us-east-1.amazonaws.com/$ECR_REPOSITORY_PATIENT:latest
+
+    - name: Build, tag, and push appointment-service image
+      run: |
+        docker build -t $ECR_REPOSITORY_APPOINTMENT:latest -f apps/Dockerfile-patient ./apps
+        docker tag $ECR_REPOSITORY_APPOINTMENT:latest 985539789378.dkr.ecr.us-east-1.amazonaws.com/$ECR_REPOSITORY_APPOINTMENT:latest
+        docker push 985539789378.dkr.ecr.us-east-1.amazonaws.com/$ECR_REPOSITORY_APPOINTMENT:latest
