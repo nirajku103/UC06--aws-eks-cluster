@@ -2,10 +2,11 @@ name: Docker Build and Push
 
 on:
   push:
-    paths-ignore:
-      - 'terraform/**'
     branches:
       - main
+    paths-ignore:
+      - 'terraform/**'
+
 
 env:
   ECR_REPOSITORY_PATIENT: patient-service
