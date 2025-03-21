@@ -32,14 +32,36 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
 
-    - name: Build, tag, and push patient-service image
-      run: |
-        docker build -t $ECR_REPOSITORY_PATIENT:latest -f apps/Dockerfile-appoint ./apps
-        docker tag $ECR_REPOSITORY_PATIENT:latest 412381761490.dkr.ecr.eu--west-2.amazonaws.com/$ECR_REPOSITORY_PATIENT:latest
-        docker push 412381761490.dkr.ecr.eu-west-2.amazonaws.com/$ECR_REPOSITORY_PATIENT:latest
 
-    - name: Build, tag, and push appointment-service image
-      run: |
-        docker build -t $ECR_REPOSITORY_APPOINTMENT:latest -f apps/Dockerfile-patient ./apps
-        docker tag $ECR_REPOSITORY_APPOINTMENT:latest 985539789378.dkr.ecr.us-east-1.amazonaws.com/$ECR_REPOSITORY_APPOINTMENT:latest
-        docker push 985539789378.dkr.ecr.us-east-1.amazonaws.com/$ECR_REPOSITORY_APPOINTMENT:latest
+     - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Generate Unique Image Tag
+        run: echo "IMAGE_TAG=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
+
+      - name: Build and Push Docker Image for Appointment-service
+        run: |
+          cd services/appointment-service
+          docker build -t appointment-service:$IMAGE_TAG .
+          docker tag appointment-service:$IMAGE_TAG $ECR_REPO_APPOINTMENT:$IMAGE_TAG
+          docker push $ECR_REPO_APPOINTMENT:$IMAGE_TAG
+
+      - name: Build and Push Docker Image for Patient-service
+        run: |
+          cd services/patient-service
+          docker build -t patient-service:$IMAGE_TAG .
+          docker tag patient--service:$IMAGE_TAG $ECR_REPO_PATIENT:$IMAGE_TAG
+          docker push $ECR_REPO_PATIENT:$IMAGE_TAG
+
+    # - name: Build, tag, and push patient-service image
+    #   run: |
+    #     docker build -t $ECR_REPOSITORY_PATIENT:latest -f services/Dockerfile-appoint ./apps
+    #     docker tag $ECR_REPOSITORY_PATIENT:latest 412381761490.dkr.ecr.eu--west-2.amazonaws.com/$ECR_REPOSITORY_PATIENT:latest
+    #     docker push 412381761490.dkr.ecr.eu-west-2.amazonaws.com/$ECR_REPOSITORY_PATIENT:latest
+
+    # - name: Build, tag, and push appointment-service image
+    #   run: |
+    #     docker build -t $ECR_REPOSITORY_APPOINTMENT:latest -f apps/Dockerfile-patient ./apps
+    #     docker tag $ECR_REPOSITORY_APPOINTMENT:latest 985539789378.dkr.ecr.us-east-1.amazonaws.com/$ECR_REPOSITORY_APPOINTMENT:latest
+    #     docker push 985539789378.dkr.ecr.us-east-1.amazonaws.com/$ECR_REPOSITORY_APPOINTMENT:latest
