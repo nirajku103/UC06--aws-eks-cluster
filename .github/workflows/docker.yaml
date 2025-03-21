@@ -1,7 +1,11 @@
 name: Docker Build and Push
 
 on:
-  workflow_dispatch:
+  push:
+    paths-ignore:
+      - 'terraform/**'
+    branches:
+      - main
 
 env:
   ECR_REPOSITORY_PATIENT: patient-service
@@ -22,7 +26,7 @@ jobs:
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-1
+        aws-region: eu-west-2
 
     - name: Login to Amazon ECR
       id: login-ecr
@@ -31,8 +35,8 @@ jobs:
     - name: Build, tag, and push patient-service image
       run: |
         docker build -t $ECR_REPOSITORY_PATIENT:latest -f apps/Dockerfile-appoint ./apps
-        docker tag $ECR_REPOSITORY_PATIENT:latest 985539789378.dkr.ecr.us-east-1.amazonaws.com/$ECR_REPOSITORY_PATIENT:latest
-        docker push 985539789378.dkr.ecr.us-east-1.amazonaws.com/$ECR_REPOSITORY_PATIENT:latest
+        docker tag $ECR_REPOSITORY_PATIENT:latest 412381761490.dkr.ecr.eu--west-2.amazonaws.com/$ECR_REPOSITORY_PATIENT:latest
+        docker push 412381761490.dkr.ecr.eu-west-2.amazonaws.com/$ECR_REPOSITORY_PATIENT:latest
 
     - name: Build, tag, and push appointment-service image
       run: |
