@@ -34,7 +34,7 @@ jobs:
 
     - name: Generate Unique Image Tag
       # run: echo "IMAGE_TAG=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
-      run: echo "IMAGE_TAG=${{ secrets.AWS_ACCOUNT_ID }}:$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
+      run: echo "IMAGE_TAG=${{ secrets.AWS_ACCOUNT_ID }}-$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
 
     - name: Build and Push Docker Image for Appointment-service
       run: |
