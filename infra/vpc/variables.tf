@@ -1,10 +1,19 @@
-
-variable "aws_region" {
+variable "vpc_cidr" {
+  description = "The CIDR block for the VPC"
   type        = string
-  description = "AWS region for the VPC"
 }
 
-variable "vpc_cidr" {
-  type        = string
-  description = "CIDR block for the VPC"
+variable "public_subnets_cidr" {
+  description = "The CIDR blocks for the public subnets"
+  type        = list(string)
+}
+
+variable "private_subnets_cidr" {
+  description = "The CIDR blocks for the private subnets"
+  type        = list(string)
+}
+
+variable "availability_zones" {
+  description = "The availability zones for the subnets"
+  type        = list(string)
 }

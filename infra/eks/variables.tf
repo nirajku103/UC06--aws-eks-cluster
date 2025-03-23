@@ -1,26 +1,14 @@
-
-variable "subnet_ids" {
-  type = list(string)
-}
-
-variable "vpc_id" {
+variable "cluster_name" {
+  description = "Name of the EKS cluster"
   type        = string
-  description = "VPC ID for the EKS cluster"
 }
 
-variable "kubernetes_version" {
-  type = string
+variable "private_subnet_ids" {
+  description = "List of private subnet IDs for the EKS cluster"
+  type        = list(string)
 }
 
-variable "ami_id" {
-  type = string
-}
-
-variable "instance_types" {
-  type = list(string)
-} 
-
-variable "aws_region" {
+variable "region" {
+  description = "AWS region"
   type        = string
-  description = "AWS region for the EKS cluster"
-} 
+}

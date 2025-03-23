@@ -1,20 +1,16 @@
 
-provider "aws" {
-  region = "eu-west-2"
+resource "aws_ecr_repository" "service1" {
+  name = "service1"
 }
 
-resource "aws_ecr_repository" "patient_service" {
-  name = "patient-service"
-  image_tag_mutability = "MUTABLE"
-  image_scanning_configuration {
-    scan_on_push = true
-  }
+resource "aws_ecr_repository" "service2" {
+  name = "service2"
 }
 
-resource "aws_ecr_repository" "appointment_service" {
-  name = "appointment-service"
-  image_tag_mutability = "MUTABLE"
-  image_scanning_configuration {
-    scan_on_push = true
-  }
+output "service1_repository_url" {
+  value = aws_ecr_repository.service1.repository_url
+}
+
+output "service2_repository_url" {
+  value = aws_ecr_repository.service2.repository_url
 }
