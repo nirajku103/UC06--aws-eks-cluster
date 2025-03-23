@@ -1,5 +1,5 @@
 output "vpc_id" {
-  value = aws_vpc.main.id
+  value = aws_vpc.this.id
 }
 
 output "public_subnets" {
@@ -11,9 +11,9 @@ output "private_subnets" {
 }
 
 output "internet_gateway_id" {
-  value = aws_internet_gateway.igw.id
+  value = aws_internet_gateway.this.id
 }
 
 output "nat_gateway_id" {
-  value = aws_nat_gateway.nat.id
+  value = aws_nat_gateway.this.id
 }
