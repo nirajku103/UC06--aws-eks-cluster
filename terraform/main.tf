@@ -17,11 +17,8 @@ module "ecr" {
 }
 
 module "eks" {
-  source          = "./modules/eks"
-  kubernetes_version = "1.21"
-  subnet_ids         = module.vpc.private_subnets
-  vpc_id             = module.vpc.vpc_id
-  ami_id             = "AL2_x86_64"
-  instance_types     = ["t3.medium"]
-  aws_region         = "eu-west-2"  # Pass the region
+  source             = "./modules/eks"
+  region             = var.region
+  cluster_name       = var.cluster_name
+  private_subnet_ids = module.vpc.private_subnets
 }
