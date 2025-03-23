@@ -45,8 +45,12 @@ resource "aws_route_table_association" "public" {
 
 # Elastic IP for NAT Gateway
 resource "aws_eip" "nat" {
-  domain = "vpc"
+  vpc = true
+  tags = {
+    Name = "nat-eip"
+  }
 }
+
 
 # NAT Gateway (Required for Private Subnets to Access Internet)
 resource "aws_nat_gateway" "this" {
