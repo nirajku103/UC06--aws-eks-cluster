@@ -32,3 +32,13 @@ variable "cluster_name" {
   description = "The name of the EKS cluster"
   type        = string
 }
+
+variable "service2_image" {
+  description = "The Docker image for service 1"
+  type        = string
+}
+
+variable "service2_image" {
+  description = "The Docker image for service 2"
+  type        = string
+}
