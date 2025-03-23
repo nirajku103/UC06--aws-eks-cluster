@@ -3,12 +3,6 @@ provider "aws" {
   region = "eu-west-2"
 }
 
-module "ecr" {
-  source = "./infra/ecr"
-}
-
-
-
 module "vpc" {
   source  = "./infra/vpc"
   aws_region = "eu-west-2"
