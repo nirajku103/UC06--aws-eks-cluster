@@ -33,7 +33,7 @@ variable "cluster_name" {
   type        = string
 }
 
-variable "service2_image" {
+variable "service1_image" {
   description = "The Docker image for service 1"
   type        = string
 }
