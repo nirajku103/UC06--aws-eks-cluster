@@ -42,19 +42,19 @@ jobs:
       - name: Generate Unique Image Tag
         run: echo "IMAGE_TAG=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
 
-      # - name: Build and Push Docker Image for Service 1
-      #   run: |
-      #     cd services/service1
-      #     docker build -t service1:$IMAGE_TAG .
-      #     docker tag service1:$IMAGE_TAG $ECR_REPO_SERVICE1:$IMAGE_TAG
-      #     docker push $ECR_REPO_SERVICE1:$IMAGE_TAG
+      - name: Build and Push Docker Image for Service 1
+        run: |
+          cd services/service1
+          docker build -t service1:$IMAGE_TAG .
+          docker tag service1:$IMAGE_TAG $ECR_REPO_SERVICE1:$IMAGE_TAG
+          docker push $ECR_REPO_SERVICE1:$IMAGE_TAG
 
-      # - name: Build and Push Docker Image for Service 2
-      #   run: |
-      #     cd services/service2
-      #     docker build -t service2:$IMAGE_TAG .
-      #     docker tag service2:$IMAGE_TAG $ECR_REPO_SERVICE2:$IMAGE_TAG
-      #     docker push $ECR_REPO_SERVICE2:$IMAGE_TAG
+      - name: Build and Push Docker Image for Service 2
+        run: |
+          cd services/service2
+          docker build -t service2:$IMAGE_TAG .
+          docker tag service2:$IMAGE_TAG $ECR_REPO_SERVICE2:$IMAGE_TAG
+          docker push $ECR_REPO_SERVICE2:$IMAGE_TAG
 
       - name: Running Terraform Apply with dev.tfvars and Image URIs
         run: |
@@ -64,3 +64,17 @@ jobs:
             -var-file=dev.tfvars \
             -var="service1_image=$ECR_REPO_SERVICE1:$IMAGE_TAG" \
             -var="service2_image=$ECR_REPO_SERVICE2:$IMAGE_TAG"
+
+      - name: Update kubeconfig for EKS Cluster
+        run: |
+          aws eks update-kubeconfig --region $AWS_REGION --name $EKS_CLUSTER
+
+      - name: Deploy Kubernetes Manifests for Service 1
+        run: |
+          kubectl apply -f manifests/service1/deployment.yaml
+          kubectl apply -f manifests/service1/service.yaml
+
+      - name: Deploy Kubernetes Manifests for Service 2
+        run: |
+          kubectl apply -f manifests/service2/deployment.yaml
+          kubectl apply -f manifests/service2/service.yaml
