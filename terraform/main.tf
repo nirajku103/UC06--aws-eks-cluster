@@ -30,7 +30,7 @@ resource "aws_iam_role" "github_actions_role" {
         }
         Condition = {
           StringLike = {
-            "token.actions.githubusercontent.com:sub" : "repo:nirajku102/UC04-Lamda-deployment:ref:refs/heads/testing-OIDC"
+            "token.actions.githubusercontent.com:sub" : "repo:nirajku103/UC06---aws-eks-cluster:ref:refs/heads/main"
           }
         }
       }
