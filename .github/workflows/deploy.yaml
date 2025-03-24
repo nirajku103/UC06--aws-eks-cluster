@@ -88,10 +88,8 @@ jobs:
       - name: Run Terraform destroy
         run: |
           cd terraform
-          terraform plan -destroy \
-            # -var-file=dev.tfvars \
-            # -var="image_uri=$ECR_REPO_APP:$IMAGE_TAG"
+          terraform plan -destroy
+
             
-          terraform destroy -auto-approve \
-            # -var-file=dev.tfvars \
-            # -var="image_uri=$ECR_REPO_APP:$IMAGE_TAG"
+          terraform destroy -auto-approve
+
