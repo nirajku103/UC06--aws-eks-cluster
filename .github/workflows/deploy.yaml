@@ -71,25 +71,31 @@ jobs:
             -var="service1_image=$ECR_REPO_SERVICE1:$IMAGE_TAG" \
             -var="service2_image=$ECR_REPO_SERVICE2:$IMAGE_TAG"
 
-      - name: Update kubeconfig for EKS Cluster
-        run: |
-          aws eks update-kubeconfig --region $AWS_REGION --name $EKS_CLUSTER
-
-      - name: Deploy Kubernetes Manifests for Service 1
-        run: |
-          kubectl apply -f manifests/service1/deployment.yaml
-          kubectl apply -f manifests/service1/service.yaml
-
-      - name: Deploy Kubernetes Manifests for Service 2
-        run: |
-          kubectl apply -f manifests/service2/deployment.yaml
-          kubectl apply -f manifests/service2/service.yaml
-
       - name: Run Terraform destroy
         run: |
           cd terraform
-          terraform plan -destroy
-
+          terraform plan -destroy \
+            -var-file=dev.tfvars \
+            -var="image_uri=$ECR_REPO_APP:$IMAGE_TAG"
             
-          terraform destroy -auto-approve
+          terraform destroy -auto-approve \
+            -var-file=dev.tfvars \
+            -var="image_uri=$ECR_REPO_APP:$IMAGE_TAG"
+
+      # - name: Update kubeconfig for EKS Cluster
+      #   run: |
+      #     aws eks update-kubeconfig --region $AWS_REGION --name $EKS_CLUSTER
+
+      # - name: Deploy Kubernetes Manifests for Service 1
+      #   run: |
+      #     kubectl apply -f manifests/service1/deployment.yaml
+      #     kubectl apply -f manifests/service1/service.yaml
+
+      # - name: Deploy Kubernetes Manifests for Service 2
+      #   run: |
+      #     kubectl apply -f manifests/service2/deployment.yaml
+      #     kubectl apply -f manifests/service2/service.yaml
+
+
+
 
