@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: service1
-        image: 412381761490.dkr.ecr.us-west-2.amazonaws.com/service1:latest
+        image: 412381761490.dkr.ecr.eu-west-2.amazonaws.com/service1:20250324060146
         ports:
         - containerPort: 3000
         resources:
