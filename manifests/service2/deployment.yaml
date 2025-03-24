@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: service2
-        image: 412381761490.dkr.ecr.us-west-2.amazonaws.com/service2:latest # Fixed region typo
+        image: 412381761490.dkr.ecr.eu-west-2.amazonaws.com/service2:20250324060146
         ports:
         - containerPort: 3001 # Updated to match the service targetPort
         resources:
