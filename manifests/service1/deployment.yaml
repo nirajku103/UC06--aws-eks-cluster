@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: service1
+  name: service1-deployment
   labels:
     app: service1
 spec:
@@ -16,25 +16,27 @@ spec:
     spec:
       containers:
       - name: service1
-        image: 412381761490.dkr.ecr.eu-west-2.amazonaws.com/service1:20250324060146
+        image: ${SERVICE1_IMAGE}
         ports:
         - containerPort: 3000
-        resources:
-          requests:
-            memory: "128Mi"
-            cpu: "250m"
-          limits:
-            memory: "256Mi"
-            cpu: "500m"
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: 3000
-          initialDelaySeconds: 5
-          periodSeconds: 10
         livenessProbe:
           httpGet:
-            path: /health
+            path: /health/status
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health/status
             port: 3000
           initialDelaySeconds: 5
-          periodSeconds: 10
+          periodSeconds: 5
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "200m"
+            memory: "256Mi"
+      imagePullSecrets:
+      - name: ecr-secret
