@@ -6,3 +6,10 @@ private_subnets = ["10.0.3.0/24", "10.0.4.0/24"]
 private_subnet_azs = ["eu-west-2a", "eu-west-2c"]
 
 cluster_name = "healthcare-app-cluster"
+kubernetes_version = "1.27"
+instance_types = ["t3.medium"]
+desired_size = 2
+max_size = 3
+min_size = 1
+disk_size = 20
+environment = "dev"

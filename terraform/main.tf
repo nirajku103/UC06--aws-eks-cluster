@@ -30,7 +30,7 @@ resource "aws_iam_role" "github_actions_role" {
         }
         Condition = {
           StringLike = {
-            "token.actions.githubusercontent.com:sub" : "repo:nirajku103/UC06---aws-eks-cluster:ref:refs/heads/main"
+            "token.actions.githubusercontent.com:sub" : "repo:nirajku103/UC06---aws-eks-cluster:*"
           }
         }
       }
@@ -38,18 +38,22 @@ resource "aws_iam_role" "github_actions_role" {
   })
 }
 
-
-
 # Attach Policies to the IAM Role
 resource "aws_iam_role_policy_attachment" "github_actions_ecr" {
   role       = aws_iam_role.github_actions_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser"
 }
 
+resource "aws_iam_role_policy_attachment" "github_actions_eks" {
+  role       = aws_iam_role.github_actions_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+}
+
 resource "aws_iam_role_policy_attachment" "github_actions_terraform" {
   role       = aws_iam_role.github_actions_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess" # Adjust this to least privilege
+  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
 }
+
 module "vpc" {
   source = "./modules/vpc"
 
@@ -58,6 +62,7 @@ module "vpc" {
   public_subnet_azs = var.public_subnet_azs
   private_subnets   = var.private_subnets
   private_subnet_azs = var.private_subnet_azs
+  environment       = var.environment
 }
 
 module "ecr" {
@@ -69,4 +74,53 @@ module "eks" {
   region             = var.region
   cluster_name       = var.cluster_name
   private_subnet_ids = module.vpc.private_subnets
+  kubernetes_version = var.kubernetes_version
+  instance_types     = var.instance_types
+  desired_size       = var.desired_size
+  max_size           = var.max_size
+  min_size           = var.min_size
+  disk_size          = var.disk_size
+  environment        = var.environment
+}
+
+resource "aws_iam_policy" "github_actions_deploy" {
+  name        = "GitHubActionsDeployPolicy"
+  description = "Policy for GitHub Actions to deploy to EKS"
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "eks:DescribeCluster",
+          "eks:ListClusters"
+        ],
+        Resource = "*"
+      },
+      {
+        Effect = "Allow",
+        Action = [
+          "ecr:GetAuthorizationToken",
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:GetDownloadUrlForLayer",
+          "ecr:GetRepositoryPolicy",
+          "ecr:DescribeRepositories",
+          "ecr:ListImages",
+          "ecr:DescribeImages",
+          "ecr:BatchGetImage",
+          "ecr:InitiateLayerUpload",
+          "ecr:UploadLayerPart",
+          "ecr:CompleteLayerUpload",
+          "ecr:PutImage"
+        ],
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "github_actions_deploy" {
+  role       = aws_iam_role.github_actions_role.name
+  policy_arn = aws_iam_policy.github_actions_deploy.arn
 }

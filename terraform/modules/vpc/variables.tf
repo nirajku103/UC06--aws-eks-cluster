@@ -1,4 +1,3 @@
-
 variable "vpc_cidr_block" {
   description = "The CIDR block for the VPC"
   type        = string
@@ -22,4 +21,10 @@ variable "private_subnets" {
 variable "private_subnet_azs" {
   description = "The Availability Zones for the private subnets"
   type        = list(string)
+}
+
+variable "environment" {
+  description = "Environment name for tagging"
+  type        = string
+  default     = "dev"
 }
