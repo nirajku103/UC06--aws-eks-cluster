@@ -5,7 +5,7 @@ on:
     paths-ignore:
       - 'terraform/**'
     branches:
-      - main
+      - dev-deploy
 
 env:
   AWS_REGION: eu-west-2
