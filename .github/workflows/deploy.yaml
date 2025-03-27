@@ -1,3 +1,148 @@
+# name: Deploy to EKS
+
+# on:
+#   push:
+#     paths-ignore:
+#       - 'terraform/**'
+#     branches:
+#       - dev-deploy
+
+#   workflow_dispatch: # Allows manual triggering of the workflow
+#     inputs:
+#       action:
+#         description: 'Action to perform: deploy or destroy'
+#         required: true
+#         default: 'deploy'
+#         type: choice
+#         options:
+#           - deploy
+#           - destroy
+
+# env:
+#   AWS_REGION: eu-west-2
+#   ECR_REPO_SERVICE1: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-2.amazonaws.com/service1
+#   ECR_REPO_SERVICE2: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-2.amazonaws.com/service2
+#   EKS_CLUSTER: healthcare-app-cluster
+#   KUBE_CONFIG: ${{ github.workspace }}/kubeconfig
+
+# permissions:
+#   id-token: write
+#   contents: read
+
+# jobs:
+#   deploy:
+#     runs-on: ubuntu-latest
+#     timeout-minutes: 30
+
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v4
+
+#       - name: Configure AWS credentials
+#         uses: aws-actions/configure-aws-credentials@v3
+#         with:
+#           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#           aws-region: ${{ secrets.AWS_REGION }}
+
+      
+#       # - name: Configure AWS credentials using OIDC
+#       #   uses: aws-actions/configure-aws-credentials@v3
+#       #   with:
+#       #     role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-role
+#       #     aws-region: ${{ env.AWS_REGION }}
+
+#       - name: Setup Terraform
+#         uses: hashicorp/setup-terraform@v2
+#         with:
+#           terraform_version: 1.5.0
+
+#       - name: Terraform Init
+#         run: terraform init
+#         working-directory: terraform
+
+#       - name: Running Terraform Apply with dev.tfvars and Image URIs
+#         run: |
+#           cd terraform
+#           terraform init
+#           terraform apply -auto-approve \
+#             -var-file=dev.tfvars \
+#             -var="service1_image=$ECR_REPO_SERVICE1:$IMAGE_TAG" \
+#             -var="service2_image=$ECR_REPO_SERVICE2:$IMAGE_TAG"
+
+#       - name: Login to Amazon ECR
+#         id: login-ecr
+#         uses: aws-actions/amazon-ecr-login@v1
+
+#       - name: Generate Unique Image Tag
+#         run: echo "IMAGE_TAG=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
+
+#       - name: Build and Push Docker Image for Service 1
+#         run: |
+#           cd services/service1
+#           docker build -t service1:$IMAGE_TAG .
+#           docker tag service1:$IMAGE_TAG $ECR_REPO_SERVICE1:$IMAGE_TAG
+#           docker push $ECR_REPO_SERVICE1:$IMAGE_TAG
+#           echo "SERVICE1_IMAGE=$ECR_REPO_SERVICE1:$IMAGE_TAG" >> $GITHUB_ENV
+
+#       - name: Build and Push Docker Image for Service 2
+#         run: |
+#           cd services/service2
+#           docker build -t service2:$IMAGE_TAG .
+#           docker tag service2:$IMAGE_TAG $ECR_REPO_SERVICE2:$IMAGE_TAG
+#           docker push $ECR_REPO_SERVICE2:$IMAGE_TAG
+#           echo "SERVICE2_IMAGE=$ECR_REPO_SERVICE2:$IMAGE_TAG" >> $GITHUB_ENV
+
+#       - name: Configure kubectl
+#         run: |
+#           aws eks --region $AWS_REGION update-kubeconfig --name $EKS_CLUSTER
+#           mkdir -p $KUBE_CONFIG
+#           cp ~/.kube/config $KUBE_CONFIG/config
+
+#       - name: Create docker config json for ECR
+#         run: |
+#           echo "DOCKER_CONFIG_JSON=$(aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com | jq -R -s '{auths: {"'${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com'": {auth: .}}' | base64 -w 0)" >> $GITHUB_ENV
+
+#       - name: Install envsubst
+#         run: sudo apt-get install gettext-base -y
+
+#       - name: Deploy manifests to EKS
+#         run: |
+#           # Install kubectl if not present
+#           if ! command -v kubectl &> /dev/null; then
+#             curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+#             sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+#           fi
+
+#           # Install helm if not present
+#           if ! command -v helm &> /dev/null; then
+#             curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+#           fi
+
+#           # Install AWS Load Balancer Controller if not already installed
+#           if ! kubectl get deployment aws-load-balancer-controller -n kube-system; then
+#             echo "Installing AWS Load Balancer Controller..."
+#             helm repo add eks https://aws.github.io/eks-charts
+#             helm repo update
+#             helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
+#               -n kube-system \
+#               --set clusterName=$EKS_CLUSTER \
+#               --set serviceAccount.create=false \
+#               --set serviceAccount.name=aws-load-balancer-controller
+#           fi
+
+#           # Process and apply manifests
+#           for file in manifests/*/*.yaml manifests/*.yaml; do
+#             envsubst < "$file" | kubectl apply -f -
+#           done
+
+#       - name: Verify deployment
+#         run: |
+#           kubectl get deployments
+#           kubectl get services
+#           kubectl get pods
+#           kubectl get ingress
+
 name: Deploy to EKS
 
 on:
@@ -6,6 +151,17 @@ on:
       - 'terraform/**'
     branches:
       - dev-deploy
+
+  workflow_dispatch: # Allows manual triggering of the workflow
+    inputs:
+      action:
+        description: 'Action to perform: deploy or destroy'
+        required: true
+        default: 'deploy'
+        type: choice
+        options:
+          - deploy
+          - destroy
 
 env:
   AWS_REGION: eu-west-2
@@ -20,6 +176,7 @@ permissions:
 
 jobs:
   deploy:
+    if: ${{ github.event.inputs.action == 'deploy' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -27,19 +184,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # - name: Configure AWS credentials
-      #   uses: aws-actions/configure-aws-credentials@v3
-      #   with:
-      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      #     aws-region: ${{ secrets.AWS_REGION }}
-
-      
-      - name: Configure AWS credentials using OIDC
+      - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v3
         with:
-          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-role
-          aws-region: ${{ env.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
@@ -59,75 +209,34 @@ jobs:
             -var="service1_image=$ECR_REPO_SERVICE1:$IMAGE_TAG" \
             -var="service2_image=$ECR_REPO_SERVICE2:$IMAGE_TAG"
 
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
+  destroy:
+    if: ${{ github.event.inputs.action == 'destroy' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
 
-      - name: Generate Unique Image Tag
-        run: echo "IMAGE_TAG=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Build and Push Docker Image for Service 1
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: terraform
+
+      - name: Running Terraform Destroy
         run: |
-          cd services/service1
-          docker build -t service1:$IMAGE_TAG .
-          docker tag service1:$IMAGE_TAG $ECR_REPO_SERVICE1:$IMAGE_TAG
-          docker push $ECR_REPO_SERVICE1:$IMAGE_TAG
-          echo "SERVICE1_IMAGE=$ECR_REPO_SERVICE1:$IMAGE_TAG" >> $GITHUB_ENV
-
-      - name: Build and Push Docker Image for Service 2
-        run: |
-          cd services/service2
-          docker build -t service2:$IMAGE_TAG .
-          docker tag service2:$IMAGE_TAG $ECR_REPO_SERVICE2:$IMAGE_TAG
-          docker push $ECR_REPO_SERVICE2:$IMAGE_TAG
-          echo "SERVICE2_IMAGE=$ECR_REPO_SERVICE2:$IMAGE_TAG" >> $GITHUB_ENV
-
-      - name: Configure kubectl
-        run: |
-          aws eks --region $AWS_REGION update-kubeconfig --name $EKS_CLUSTER
-          mkdir -p $KUBE_CONFIG
-          cp ~/.kube/config $KUBE_CONFIG/config
-
-      - name: Create docker config json for ECR
-        run: |
-          echo "DOCKER_CONFIG_JSON=$(aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com | jq -R -s '{auths: {"'${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com'": {auth: .}}' | base64 -w 0)" >> $GITHUB_ENV
-
-      - name: Install envsubst
-        run: sudo apt-get install gettext-base -y
-
-      - name: Deploy manifests to EKS
-        run: |
-          # Install kubectl if not present
-          if ! command -v kubectl &> /dev/null; then
-            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-            sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
-          fi
-
-          # Install helm if not present
-          if ! command -v helm &> /dev/null; then
-            curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-          fi
-
-          # Install AWS Load Balancer Controller if not already installed
-          if ! kubectl get deployment aws-load-balancer-controller -n kube-system; then
-            echo "Installing AWS Load Balancer Controller..."
-            helm repo add eks https://aws.github.io/eks-charts
-            helm repo update
-            helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
-              -n kube-system \
-              --set clusterName=$EKS_CLUSTER \
-              --set serviceAccount.create=false \
-              --set serviceAccount.name=aws-load-balancer-controller
-          fi
-
-          # Process and apply manifests
-          for file in manifests/*/*.yaml manifests/*.yaml; do
-            envsubst < "$file" | kubectl apply -f -
-          done
-
-      - name: Verify deployment
-        run: |
-          kubectl get deployments
-          kubectl get services
-          kubectl get pods
-          kubectl get ingress
+          cd terraform
+          terraform init
+          terraform destroy -auto-approve \
+            -var-file=dev.tfvars
