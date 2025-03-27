@@ -21,7 +21,7 @@ spec:
             name: service1-service
             port:
               number: 80
-      - path: /patient
+      - path: /patients
         pathType: Prefix
         backend:
           service:
