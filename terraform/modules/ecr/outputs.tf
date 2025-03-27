@@ -13,8 +13,3 @@ output "service1_repository_arn" {
 output "service2_repository_arn" {
   value = aws_ecr_repository.service2.arn
 }
-
-output "repositories" {
-  description = "List of ECR repositories created"
-  value       = aws_ecr_repository.repositories[*].name
-}
