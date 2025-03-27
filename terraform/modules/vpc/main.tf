@@ -61,10 +61,14 @@ resource "aws_route_table_association" "public" {
 }
 
 resource "aws_eip" "nat" {
-  domain = "vpc"
-  tags = {
-    Name = "${var.environment}-nat-eip"
-  }
+  count = var.enable_nat_gateway ? length(var.public_subnets) : 0
+
+  # Remove the domain attribute
+  # domain = "vpc"
+
+  vpc      = true
+  instance = aws_nat_gateway.nat[count.index].id
+  tags     = var.tags
 }
 
 resource "aws_nat_gateway" "this" {
