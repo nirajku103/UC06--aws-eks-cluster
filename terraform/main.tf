@@ -83,6 +83,15 @@ module "eks" {
   environment        = var.environment
 }
 
+# IAM Policy for AWS Load Balancer Controller
+resource "aws_iam_policy" "load_balancer_controller" {
+  name        = "AWSLoadBalancerControllerPolicy"
+  description = "Policy for AWS Load Balancer Controller"
+
+  policy = file("${path.module}/modules/eks/load-balancer-controller-policy.json")
+}
+
+# IAM Policy for GitHub Actions Deployment
 resource "aws_iam_policy" "github_actions_deploy" {
   name        = "GitHubActionsDeployPolicy"
   description = "Policy for GitHub Actions to deploy to EKS"
