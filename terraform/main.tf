@@ -67,9 +67,6 @@ module "vpc" {
 
 module "ecr" {
   source = "./modules/ecr"
-
-  repositories = ["service1", "service2"]
-  force_delete = true # Ensure ECR repositories are force deleted
 }
 
 module "eks" {
