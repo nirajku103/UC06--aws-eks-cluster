@@ -46,7 +46,7 @@ variable "service2_image" {
 variable "kubernetes_version" {
   description = "Kubernetes version for EKS cluster"
   type        = string
-  default     = "1.31"
+  default     = "1.29"
 }
 
 variable "instance_types" {
