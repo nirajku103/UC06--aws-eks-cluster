@@ -152,16 +152,16 @@ on:
     branches:
       - dev-deploy
 
-  workflow_dispatch: # Allows manual triggering of the workflow
-    inputs:
-      action:
-        description: 'Action to perform: deploy or destroy'
-        required: true
-        default: 'deploy'
-        type: choice
-        options:
-          - deploy
-          - destroy
+  # workflow_dispatch: # Allows manual triggering of the workflow
+  #   inputs:
+  #     action:
+  #       description: 'Action to perform: deploy or destroy'
+  #       required: true
+  #       default: 'deploy'
+  #       type: choice
+  #       options:
+  #         - deploy
+  #         - destroy
 
 env:
   AWS_REGION: eu-west-2
