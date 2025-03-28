@@ -171,7 +171,7 @@ resource "aws_iam_role_policy_attachment" "load_balancer_controller" {
 }
 
 resource "helm_release" "aws_load_balancer_controller" {
-  name       = "aws-load-balancer-controller"
+  name       = "aws-load-balancer-controller-new"
   namespace  = "kube-system"
   repository = "https://aws.github.io/eks-charts"
   chart      = "aws-load-balancer-controller"
