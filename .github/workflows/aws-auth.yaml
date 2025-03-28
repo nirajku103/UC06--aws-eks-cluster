@@ -5,7 +5,7 @@ data:
       - system:bootstrappers
       - system:nodes
       rolearn: arn:aws:iam::412381761490:role/healthcare-app-cluster-worker-node-role
-      username: system:node:{{EC2PrivateDNSName}}
+      username: terraform--user
 kind: ConfigMap
 metadata:
   creationTimestamp: "2025-03-27T09:51:34Z"
