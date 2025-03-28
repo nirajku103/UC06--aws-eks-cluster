@@ -170,6 +170,31 @@ resource "aws_iam_role_policy_attachment" "load_balancer_controller" {
   policy_arn = aws_iam_policy.load_balancer_controller.arn
 }
 
+resource "helm_release" "aws_load_balancer_controller" {
+  name       = "aws-load-balancer-controller"
+  namespace  = "kube-system"
+  repository = "https://aws.github.io/eks-charts"
+  chart      = "aws-load-balancer-controller"
+  version    = "1.5.3" # Use the latest version
+
+  set {
+    name  = "clusterName"
+    value = var.cluster_name
+  }
+
+  set {
+    name  = "serviceAccount.create"
+    value = "false"
+  }
+
+  set {
+    name  = "serviceAccount.name"
+    value = "aws-load-balancer-controller"
+  }
+
+  depends_on = [aws_iam_role_policy_attachment.load_balancer_controller]
+}
+
 data "aws_caller_identity" "current" {}
 
 data "tls_certificate" "eks" {
