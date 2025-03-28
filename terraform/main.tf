@@ -54,6 +54,57 @@ resource "aws_iam_role_policy_attachment" "github_actions_terraform" {
   policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
 }
 
+# Custom IAM Policy for GitHub Actions Deployment
+resource "aws_iam_policy" "github_actions_deploy" {
+  name        = "GitHubActionsDeployPolicy"
+  description = "Policy for GitHub Actions to deploy to EKS"
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "eks:DescribeCluster",
+          "eks:ListClusters",
+          "eks:AccessKubernetesApi"
+        ],
+        Resource = "*"
+      },
+      {
+        Effect = "Allow",
+        Action = [
+          "ecr:GetAuthorizationToken",
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:GetDownloadUrlForLayer",
+          "ecr:GetRepositoryPolicy",
+          "ecr:DescribeRepositories",
+          "ecr:ListImages",
+          "ecr:DescribeImages",
+          "ecr:BatchGetImage",
+          "ecr:InitiateLayerUpload",
+          "ecr:UploadLayerPart",
+          "ecr:CompleteLayerUpload",
+          "ecr:PutImage"
+        ],
+        Resource = "*"
+      },
+      {
+        Effect = "Allow",
+        Action = [
+          "iam:PassRole"
+        ],
+        Resource = "arn:aws:iam::*:role/*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "github_actions_deploy" {
+  role       = aws_iam_role.github_actions_role.name
+  policy_arn = aws_iam_policy.github_actions_deploy.arn
+}
+
 module "vpc" {
   source = "./modules/vpc"
 
@@ -89,47 +140,4 @@ resource "aws_iam_policy" "load_balancer_controller" {
   description = "Policy for AWS Load Balancer Controller"
 
   policy = file("${path.module}/modules/eks/load-balancer-controller-policy.json")
-}
-
-# IAM Policy for GitHub Actions Deployment
-resource "aws_iam_policy" "github_actions_deploy" {
-  name        = "GitHubActionsDeployPolicy"
-  description = "Policy for GitHub Actions to deploy to EKS"
-
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Effect = "Allow",
-        Action = [
-          "eks:DescribeCluster",
-          "eks:ListClusters"
-        ],
-        Resource = "*"
-      },
-      {
-        Effect = "Allow",
-        Action = [
-          "ecr:GetAuthorizationToken",
-          "ecr:BatchCheckLayerAvailability",
-          "ecr:GetDownloadUrlForLayer",
-          "ecr:GetRepositoryPolicy",
-          "ecr:DescribeRepositories",
-          "ecr:ListImages",
-          "ecr:DescribeImages",
-          "ecr:BatchGetImage",
-          "ecr:InitiateLayerUpload",
-          "ecr:UploadLayerPart",
-          "ecr:CompleteLayerUpload",
-          "ecr:PutImage"
-        ],
-        Resource = "*"
-      }
-    ]
-  })
-}
-
-resource "aws_iam_role_policy_attachment" "github_actions_deploy" {
-  role       = aws_iam_role.github_actions_role.name
-  policy_arn = aws_iam_policy.github_actions_deploy.arn
 }
