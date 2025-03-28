@@ -43,6 +43,30 @@ resource "aws_iam_role_policy_attachment" "eks_vpc_resource_controller" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSVPCResourceController"
 }
 
+resource "aws_iam_policy" "eks_permissions_policy" {
+  name        = "${var.cluster_name}-eks-permissions-policy"
+  description = "Policy for EKS cluster access"
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "eks:DescribeCluster",
+          "eks:ListClusters",
+          "eks:AccessKubernetesApi"
+        ],
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "eks_permissions_policy_attachment" {
+  role       = aws_iam_role.eks_cluster_role.name
+  policy_arn = aws_iam_policy.eks_permissions_policy.arn
+}
+
 resource "aws_eks_node_group" "worker_nodes" {
   cluster_name    = aws_eks_cluster.eks_cluster.name
   node_group_name = "${var.cluster_name}-worker-nodes"
