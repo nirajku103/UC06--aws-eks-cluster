@@ -30,7 +30,7 @@ resource "aws_iam_role" "github_actions_role" {
         }
         Condition = {
           StringLike = {
-            "token.actions.githubusercontent.com:sub" : "repo:nirajku103/UC06---aws-eks-cluster:*"
+            "token.actions.githubusercontent.com:sub" : "repo:nirajku103/UC06--aws-eks-cluster:*"
           }
         }
       }
